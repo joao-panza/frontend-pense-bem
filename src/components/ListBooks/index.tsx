@@ -1,25 +1,22 @@
 import { FC, ReactElement, useEffect, useState } from "react";
 import { Book } from "..";
 
-const baseUrl = "http://localhost:4000/";
+const baseUrl = "http://localhost:4000";
 
 export const ListBooks: FC = (): ReactElement => {
     const [loading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<boolean>(true);
+    const [, setError] = useState<boolean>(true);
     const [books, setBooks] = useState<any[]>();
     const [selectedBook, setSelectedBook] = useState<string | null>(null);
+    const [programs, setPrograms] = useState<any[]>();
 
     useEffect(() => {        
         setLoading(true);
 
-        fetch(baseUrl.concat("book/list"))
+        fetch(baseUrl.concat("/book/list"))
             .then((response) => response.json())
             .then((data) => {
                 setBooks(data.books);
-                setLoading(false);
-            })
-            .catch((error) => {
-                setError(error)
                 setLoading(false);
             });
     }, []);
@@ -31,7 +28,13 @@ export const ListBooks: FC = (): ReactElement => {
     }
 
     function handleSelectBook(bookId: string): void {
-        //TODO: buscar programas do livro selecionado
+        setLoading(true);
+        fetch(baseUrl.concat("/book/", bookId, "/program/list"))
+            .then((response) => response.json())
+            .then((data) => {
+                setPrograms(data.programs);
+                setLoading(false);
+            });
         setSelectedBook(bookId);
     }
 
@@ -40,9 +43,18 @@ export const ListBooks: FC = (): ReactElement => {
             <div>
                 <div>Livros</div>
                 <div>Livro Selecionado: {selectedBook}</div>
-                {!selectedBook && books && books.map(({id, ...book}) => {
+                {!selectedBook && books?.map(({id, ...book}) => {
                     return (
-                        <Book bookId={id} {...book} handleSelectBook={handleSelectBook}/>
+                        <Book key={id} bookId={id} {...book} handleSelectBook={handleSelectBook}/>
+                    );
+                })}
+
+                {programs?.map((program) => {
+                    return (
+                        <div key={program.programId}>
+                            <span>ID: </span>
+                            <span>{program.programId}</span>
+                        </div>
                     );
                 })}
             </div>
